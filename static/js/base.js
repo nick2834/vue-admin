@@ -1,7 +1,5 @@
-// const baseUrl = 'http://test.bulunu.com';
-// const baseImgUrl = 'http://p0mqyincn.bkt.clouddn.com/';
-const baseUrl = 'https://www.bulunu.com';
-const baseImgUrl = 'https://bulunu.suber360.com/';
+const baseUrl = '域名地址';
+const baseImgUrl = '七牛云地址';
 (function() {
     var Storage = {
         AUTH: 'FLV-AUTH',
