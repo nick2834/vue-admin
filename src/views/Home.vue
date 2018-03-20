@@ -175,10 +175,13 @@
                 this.$confirm('确认退出吗?', '提示', {
                     type: 'warning'
                 }).then(() => {
-                    this.$store.dispatch('LogOut').then(() => {
-                        location.reload()
-                        _this.$router.push('/login');
-                    })
+//                    this.$store.dispatch('LogOut').then(() => {
+//                        _this.$router.push('/login');
+//                    })
+                    baseCookie.clearInfo()
+                    removeToken('refresh')
+                    removeToken('userInfo')
+                    _this.$router.push('/login');
                 }).catch(() => {
 
                 });
@@ -233,39 +236,10 @@
                 if (this.$route.path === '/') {
                     this.$router.push({path: '/main'});
                 }
-            },
-            getMenus(){
-//                var child = []
-//                var permissions = []
-//                permissions = JSON.parse(Cookies.get('permissions'))
-//                this.$router.options.routes.map(item => {
-//                    if (item.hidden) {
-//                        this.menuHiddenList.push(item)//隐藏路由
-//                        return
-//                    }
-//                    this.menuList.push(item)//非隐藏路由
-//                })
-//                this.menuList.map(item => {
-//                    item.children.map(items => {
-//                        if (items.hidden) {
-//                            return
-//                        }
-//                        this.menuHasList.push(items)
-//                    })
-//                })
-//                permissions.map((res, index) => {
-//                    this.menuHasList.map((item, index2) => {
-//                        if (item.name === res.name) {
-//                            child.push(res)
-//                            return
-//                        }
-//                    })
-//                })
             }
         },
         mounted() {
             this.homeInit()
-            this.getMenus()
         }
     }
 

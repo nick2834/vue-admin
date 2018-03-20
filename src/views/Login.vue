@@ -45,7 +45,6 @@
                         this.$store.dispatch('LoginByUsername',this.ruleForm2).then(() =>{
                             this.loading = false
                             this.$router.push({ path: '/main' })
-                            console.log(_this.$store.getters)
                         }).catch(() =>{
                             this.loading = false
                         })

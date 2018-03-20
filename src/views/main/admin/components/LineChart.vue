@@ -82,7 +82,6 @@
             fetchData(){
                 let that = this
                 statistic().then(res => {
-                    console.log(res)
                     let result = res.data.result
                     for(let i in result){
                         that.weekday.push(result[i].date)

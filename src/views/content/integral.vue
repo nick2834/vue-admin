@@ -13,7 +13,8 @@
                     <el-input v-model="filters.phone" placeholder="手机号"></el-input>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" v-on:click="search">查询</el-button>
+                    <el-button type="primary" @click="search">查询</el-button>
+                    <el-button type="primary" @click="cancelSearch">重置</el-button>
                 </el-form-item>
             </el-form>
         </el-col>
@@ -84,7 +85,6 @@
         data() {
             return {
                 filename: '',
-                downloadLoading: false,
                 filters: {
                     id: '',
                     phone: '',
@@ -109,63 +109,47 @@
                     nickname: '',
                     credit: '',
                 },
+                params:{
+                    page:1
+                },
+                map:new Map()
             }
         },
         methods: {
             handleCurrentChange(val) {
-                this.page = val;
-                this.getUsers();
-            },
-            //获取用户列表
-            getUsers() {
-                this.listLoading = true;
-                let nickname = ''
-                let user_id = ''
-                let phone = ''
-                creditsList(nickname,user_id,phone).then((res) => {
-                    this.total = res.data.paging.total_pages
-                    this.creditsList = res.data.users
-                    this.listLoading = false;
-                })
+                this.params.page = val;
+                this.getList(this.params);
             },
             search() {
-                if(this.filters.id == '' && this.filters.nickname == '' && this.filters.phone ==''){
-                    this.getUsers();
-                }else if(this.filters.id == '' && this.filters.nickname == ''){
-                    this.listLoading = true;
-                    let nickname = ''
-                    let user_id = ''
-                    let phone = this.filters.phone
-                    creditsList(nickname,user_id,phone).then((res) => {
-                        this.total = res.data.paging.total_pages
-                        this.creditsList = res.data.users
-                        this.listLoading = false;
-                    })
-                }else if(this.filters.id == '' && this.filters.phone == ''){
-                    this.listLoading = true;
-                    let nickname = this.filters.nickname
-                    let user_id = ''
-                    let phone = ''
-                    creditsList(nickname,user_id,phone).then((res) => {
-                        this.total = res.data.paging.total_pages
-                        this.creditsList = res.data.users
-                        this.listLoading = false;
-                    })
-                }else if(this.filters.nickname == '' && this.filters.phone ==''){
-                    this.listLoading = true;
-                    let nickname = ''
-                    let user_id = this.filters.id
-                    let phone = ''
-                    creditsList(nickname,user_id,phone).then((res) => {
-                        this.total = res.data.paging.total_pages
-                        this.creditsList = res.data.users
-                        this.listLoading = false;
+                let that = this
+                for(const i in that.filters){
+                    that.map.set(i, that.filters[i])
+                    that.map.forEach((val, key, obj) => {
+                        that.params[key] = val
                     })
                 }
+                that.getList(that.params)
+            },
+            getList(params){
+                this.listLoading = true;
+                creditsList(params).then((res) => {
+                    if(res.code === 1){
+                        this.total = res.data.paging.total_pages
+                        this.creditsList = res.data.users
+                        this.listLoading = false;
+                    }else{
+                        this.$router.push({path: '/login'});
+                    }
+                }).catch(err =>{
+                    this.$router.push({path: '/login'});
+                })
             },
             cancelSearch () {
-                this.page = 1
-                this.getUsers()
+                this.params.id = ''
+                this.params.phone = ''
+                this.params.name = ''
+                this.params.page = 1
+                this.getList(this.params);
             },
             //显示编辑界面
             handleEdit: function (index, row) {
@@ -187,7 +171,7 @@
                                         type: 'success'
                                     });
                                     this.editFormVisible = false;
-                                    this.getUsers();
+                                    this.search();
                                 }else{
                                     this.$message({
                                         message: '未知错误',
@@ -212,9 +196,7 @@
 
         },
         mounted() {
-            this.$nextTick(() => {
-                this.getUsers()
-            })
+            this.search()
         }
     }
 

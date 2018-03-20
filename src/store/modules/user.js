@@ -52,7 +52,6 @@ const user = {
             return new Promise((resolve, reject) => {
                 usersLogin(username, password).then(response => {
                     const users = response.data.user
-                    console.log(users)
                     if (response.code == 1) {
                         Message.success('登陆成功')
                         setToken("loginInfo", "true")

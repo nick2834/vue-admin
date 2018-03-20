@@ -133,18 +133,19 @@
                     name: '',
                     description: '',
                     permission_type: ''
-                }
+                },
+                params: {page: 1}
             }
         },
         methods: {
             handleCurrentChange(val) {
-                this.page = val;
-                this.getPerList();
+                this.params.page = val
+                this.getPerList(this.params);
             },
             //获取用户列表
-            getPerList() {
+            getPerList(params) {
                 this.listLoading = true;
-                permissions().then(res => {
+                permissions(params).then(res => {
                     this.permissonList = res.data.permissions
                     this.listLoading = false
                     this.total = res.data.paging.total_pages
@@ -156,12 +157,7 @@
                 } else {
                     var para = {page: this.page, name: this.filters.name};
                 }
-                this.listLoading = true;
-                permissions(para).then(res => {
-                    this.permissonList = res.data.permissions
-                    this.listLoading = false
-                    this.total = res.data.paging.total_pages
-                })
+                this.getPerList(para)
             },
             handleEdit:function (index, row) {
                 this.editFormVisible = true

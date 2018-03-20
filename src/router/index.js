@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-Vue.use(Router)
 import Cookies from 'js-cookie'
 import Main from 'views/main/index'
-import fullpath from './fullpath'
+Vue.use(Router)
+import {allPath,register,content,permis,cars,settings} from './fullpath'
 const Home = resolve => require([/* webpackChunkName:'Home'*/ 'views/Home.vue'], resolve)
 const Login = resolve => require([/* webpackChunkName:'Login'*/'views/Login.vue'], resolve)
 const NotFound = resolve => require([/* webpackChunkName:'404'*/'views/404.vue'], resolve)
@@ -46,68 +46,41 @@ let baseRoute = [
         redirect: {path: '/main'}
     }
 ];
-const register = {path: '/', component: Home, name: '注册管理', iconCls: 'el-icon-bulunu-user', children: []}
-const content = {
-    path: '/',
-    component: Home,
-    name: '内容管理',
-    iconCls: 'el-icon-bulunu-content',
-    children: []
-}
-const permis = {
-    path: '/',
-    component: Home,
-    name: '管理权限',
-    iconCls: 'el-icon-bulunu-permission',
-    children: []
-}
-const cars = {
-    path: '/',
-    component: Home,
-    name: '车辆管理',
-    iconCls: 'el-icon-bulunu-cars',
-    children: []
-}
-const settings = {
-    path: '/',
-    component: Home,
-    name: '系统设定',
-    iconCls: 'el-icon-bulunu-settings',
-    children: []
-}
-fullpath.map(res =>{
-    for (let i in res.children){
-        if(Cookies.get('permissions')){
-            let permissions = JSON.parse(Cookies.get('permissions'))
-            for( let j in permissions){
-                if(res.children[i].name === permissions[j].name){
-                    switch (res.children[i].meta.childNo){
-                        case 1001:
-                            register.children.push(res.children[i])
-                            break;
-                        case 1002:
-                            content.children.push(res.children[i])
-                            break;
-                        case 1003:
-                            permis.children.push(res.children[i])
-                            break;
-                        case 1004:
-                            cars.children.push(res.children[i])
-                            break;
-                        case 1005:
-                            settings.children.push(res.children[i])
-                            break;
-                        default:
-                            console.log('')
-                    }
-                }else{
 
+allPath.map(res =>{
+    if(document.cookie.indexOf('permissions') !== -1){
+        let permissions = JSON.parse(Cookies.get('permissions'))
+        permissions.map(response =>{
+            if(res.name === response.name){
+                // res['has'] = true
+                // console.log(res)
+                switch (res.meta.childNo){
+                    case 1001:
+                        register.children.push(res)
+                        break;
+                    case 1002:
+                        content.children.push(res)
+                        break;
+                    case 1003:
+                        permis.children.push(res)
+                        break;
+                    case 1004:
+                        cars.children.push(res)
+                        break;
+                    case 1005:
+                        settings.children.push(res)
+                        break;
+                    default:
+                        console.log('')
                 }
+            }else{
+
             }
-        }
+        })
+    }else{
+
     }
 })
-
 let newRouters = baseRoute.concat(register,content,permis,cars,settings)
 
 let router = new Router({
@@ -117,7 +90,18 @@ let router = new Router({
 router.beforeEach((to, from, next) => {
     let routeName = to.meta.name || to.name;
     window.document.title = routeName;
-    next();
+    if (to.path == '/login') {
+        Cookies.set("loginInfo",false);
+    }
+    // let loginInfo = Cookies.get('loginInfo');
+    let token=document.cookie.indexOf("authentication_token");
+    if (token === -1 && to.path != '/login') {
+        next({ path: '/login' })
+    } else {
+        next()
+    }
 });
 
 export default router;
+
+

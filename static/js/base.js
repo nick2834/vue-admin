@@ -1,4 +1,4 @@
-const baseUrl = '域名地址';
+const baseUrl = '接口地址';
 const baseImgUrl = '七牛云地址';
 (function() {
     var Storage = {

@@ -4,7 +4,7 @@
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
             <el-form :inline="true" :model="filters">
                 <el-form-item>
-                    <el-input v-model="filters.title" placeholder="话题内容"></el-input>
+                    <el-input v-model="filters.title" placeholder="话题标题"></el-input>
                 </el-form-item>
                 <el-form-item>
                     <el-input v-model="filters.author_name" placeholder="作者"></el-input>
@@ -18,11 +18,11 @@
                 <el-form-item>
                     <el-button type="primary" @click="search">查询</el-button>
                 </el-form-item>
-                <el-input style='width:240px;' placeholder="请输入文件名(默认excel-list)" prefix-icon="el-icon-document"
-                          v-model="filename"></el-input>
-                <el-button style='margin-bottom:20px;' type="primary" icon="document" @click="handleDownload"
-                           :loading="downloadLoading">导出excel
-                </el-button>
+                <!--<el-input style='width:240px;' placeholder="请输入文件名(默认excel-list)" prefix-icon="el-icon-document"-->
+                          <!--v-model="filename"></el-input>-->
+                <!--<el-button style='margin-bottom:20px;' type="primary" icon="document" @click="handleDownload"-->
+                           <!--:loading="downloadLoading">导出excel-->
+                <!--</el-button>-->
                 <router-link class="el-button el-button--primary" :to="{ path: '/createtopic' }" tag="button">创建话题
                 </router-link>
             </el-form>
@@ -34,7 +34,7 @@
                   style="width: 100%;" height="500">
             <el-table-column type="selection" width="35">
             </el-table-column>
-            <el-table-column label="操作" width="200" fixed="left">
+            <el-table-column label="操作" width="150" fixed="left">
                 <template slot-scope="scope">
                     <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
                     <el-button type="danger" v-if="scope.row.status !== 'online'" size="small"
@@ -43,7 +43,7 @@
                     <el-button v-else="scope.row.status === 'online'" size="small"
                                @click="handleStatus(scope.$index, scope.row)">下线
                     </el-button>
-                    <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+                    <!--<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>-->
                 </template>
             </el-table-column>
             <el-table-column prop="id" width="80" label="ID" sortable>
@@ -60,7 +60,9 @@
             </el-table-column>
             <el-table-column prop="likes" label="点赞数" width="100" sortable>
             </el-table-column>
-            <el-table-column prop="description" label="评论数" width="100" sortable>
+            <el-table-column prop="viewers" label="观看数" width="100" sortable>
+            </el-table-column>
+            <el-table-column prop="comment_count" label="评论数" width="100" sortable>
             </el-table-column>
             <el-table-column prop="tags" label="标签" sortable>
                 <template slot-scope="scope">

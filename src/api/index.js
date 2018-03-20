@@ -66,6 +66,10 @@ export const statistic = (para) => {
 export const userList = (params) => {
     return axios.get(process.env.API_HOST + `system/users.json`, {params: params}).then(res => res.data)
 }
+//管理员用户
+export const managerList = (params) => {
+    return axios.get(process.env.API_HOST + `system/users.json?filter=internal`, {params: params}).then(res => res.data)
+}
 //设置内部用户
 export const InternalUsers = (id) => {
     const data = {
@@ -141,7 +145,7 @@ export const setRole = (id, rid) => {
     const data = {
         rid: rid
     }
-    return axios.post(process.env.API_HOST + `system/users/` + id + `/roles/add.json`, data).then(res => res.data)
+    return axios.post(process.env.API_HOST + `system/users/` + id + `/roles.json`, data).then(res => res.data)
 }
 //删除用户角色
 export const removeRole = (id) => {
@@ -152,11 +156,7 @@ export const setPermission = (id, pid) => {
     const data = {
         pid: pid
     }
-    return axios.post(process.env.API_HOST + `system/roles/` + id + `/permissions/add.json`, data).then(res => res.data)
-}
-//删除角色权限
-export const removePermission = (id) => {
-    return axios.post(process.env.API_HOST + `system/roles/` + id + `/permissions/remove.json`).then(res => res.data)
+    return axios.post(process.env.API_HOST + `system/roles/` + id + `/permissions.json`, data).then(res => res.data)
 }
 //权限列表
 export const permissions = (params) => {
@@ -182,6 +182,10 @@ export const reloadPermissions = (id, name, des, perType) => {
 //删除权限
 export const deletePermissions = (id) => {
     return axios.delete(process.env.API_HOST + `system/permissions/` + id + `.json`).then(res => res.data)
+}
+//修改管理员
+export const editUser = (id,name,pwd) =>{
+    return axios.patch(process.env.API_HOST + `system/users/`+id+`.json?user[name]=` + name + `&user[password]=` + pwd).then(res => res.data)
 }
 //话题列表
 export const topicList = (params) => {
@@ -264,8 +268,8 @@ export const movement = (params) => {
     return axios.post(process.env.API_HOST + 'system/notifications/push.json', params).then(res => res.data)
 }
 //数据字典列表
-export const dictionariesList = (type, name) => {
-    return axios.get(process.env.API_HOST + 'system/dictionaries.json?type=' + type + '&name=' + name).then(res => res.data)
+export const dictionariesList = (params) => {
+    return axios.get(process.env.API_HOST + 'system/dictionaries.json',{params:params}).then(res => res.data)
 }
 //获取字典类型
 export const dictionariesType = () => {
@@ -320,8 +324,8 @@ export const updateActivities = (id, title, description, name, poster_url, icon_
     return axios.patch(process.env.API_HOST + 'system/activities/' + id + '.json', data).then(res => res.data)
 }
 //积分列表
-export const creditsList = (nickname, user_id, phone) => {
-    return axios.get(process.env.API_HOST + 'system/credits.json?nickname=' + nickname + '&user_id=' + user_id + '&phone=' + phone).then(res => res.data)
+export const creditsList = (params) => {
+    return axios.get(process.env.API_HOST + 'system/credits.json',{params:params}).then(res => res.data)
 }
 //修改积分
 export const updateCredits = (id, credit, experience) => {
@@ -393,6 +397,10 @@ export const addCar = (id, user_id, car_alias, desc) => {
 //删除车辆车主
 export const deleteCar = (id) => {
     return axios.delete(process.env.API_HOST + 'system/cars/' + id + '/remove.json').then(res => res.data)
+}
+//修改车主
+export const updataOwner = (id,user_id) => {
+    return axios.put(process.env.API_HOST + 'system/cars/' + id + '/owner.json?user_id='+user_id).then(res => res.data)
 }
 //日报
 export const dailyLsit = (startingTime, endTime) => {

@@ -20,25 +20,18 @@
                   style="width: 100%;">
             <el-table-column type="selection" width="55">
             </el-table-column>
-            <el-table-column label="操作" width="300" fixed="left">
+            <el-table-column label="操作" width="350" fixed="left">
                 <template slot-scope="scope">
                     <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-                    <el-button size="small" @click="handleSet(scope.$index, scope.row)">设置权限</el-button>
+                    <el-button size="small" @click="handleSet(scope.$index, scope.row)">分配权限</el-button>
                     <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
                 </template>
             </el-table-column>
-            <el-table-column prop="id" width="100" label="ID" sortable>
+            <el-table-column prop="id" width="200" label="ID" sortable>
             </el-table-column>
-            <el-table-column prop="name" label="权限组名" width="200" sortable>
+            <el-table-column prop="name" label="权限组名" width="300" sortable>
             </el-table-column>
-            <el-table-column prop="description" label="描述" width="200" sortable>
-            </el-table-column>
-            <el-table-column prop="permissions" label="权限组" sortable>
-                <template slot-scope="scope">
-                    <el-tag :key="item.id" v-for="item,index in scope.row.permissions" closable type="info"
-                            @close="handleClose(item)">{{item.name}}
-                    </el-tag>
-                </template>
+            <el-table-column prop="description" label="描述" sortable>
             </el-table-column>
         </el-table>
 
@@ -51,11 +44,6 @@
                 <el-form-item label="描述" prop="description">
                     <el-input type="textarea" v-model="editForm.description"></el-input>
                 </el-form-item>
-                <el-form-item label="权限集合" prop="permissions">
-                    <template slot-scope="scope">
-                        <el-checkbox v-for="item in editForm.permissions" :key="item.id" :label="item.name" name="role_type"></el-checkbox>
-                    </template>
-                </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button type="primary" @click="editSubmit" :loading="editLoading">提交</el-button>
@@ -64,18 +52,18 @@
         </el-dialog>
 
         <!--新增界面-->
-        <el-dialog title="新增权限" v-model="addFormVisible" :close-on-click-modal="false">
+        <el-dialog title="新增权限组" v-model="addFormVisible" :close-on-click-modal="false">
             <el-form ref="addForm" :model="addForm" label-width="80px" :rules="addFormRules">
                 <el-form-item label="权限组名" prop="name">
                     <el-input v-model="addForm.name"></el-input>
                 </el-form-item>
-                <el-form-item label="权限集合">
-                    <el-checkbox-group v-model="addForm.role_type">
-                        <el-checkbox v-for="item in permissionList" :key="item.id" :label="item.id" name="role_type">
-                            {{item.name}}
-                        </el-checkbox>
-                    </el-checkbox-group>
-                </el-form-item>
+                <!--<el-form-item label="权限集合">-->
+                    <!--<el-checkbox-group v-model="addForm.role_type">-->
+                        <!--<el-checkbox v-for="item in permissionList" :key="item.id" :label="item.id" name="role_type">-->
+                            <!--{{item.name}}-->
+                        <!--</el-checkbox>-->
+                    <!--</el-checkbox-group>-->
+                <!--</el-form-item>-->
                 <el-form-item label="描述" prop="description">
                     <el-input v-model="addForm.description"></el-input>
                 </el-form-item>
@@ -86,23 +74,24 @@
             </div>
         </el-dialog>
         <!--设置界面-->
-        <el-dialog title="新增权限" v-model="setFormVisible" :close-on-click-modal="false">
+        <el-dialog title="修改权限" v-model="setFormVisible" :close-on-click-modal="false" width="30%" center>
             <el-form ref="setForm" :model="setForm" label-width="80px" :rules="setFormRules">
                 <el-form-item label="权限组名" prop="name">
-                    <el-input v-model="setForm.name"></el-input>
+                    <el-input v-model="setForm.name" disabled></el-input>
                 </el-form-item>
                 <el-form-item label="权限集合">
-                    <el-checkbox-group v-model="setForm.pid">
+                    <el-checkbox-group v-model="indexs" @change="changeCheckbox">
                         <el-checkbox v-for="item in permissionList" :key="item.id" :label="item.id" name="pid">
                             {{item.name}}
                         </el-checkbox>
                     </el-checkbox-group>
                 </el-form-item>
             </el-form>
-            <div slot="footer" class="dialog-footer">
+            <span slot="footer" class="dialog-footer">
                 <el-button @click.native="setFormVisible = false">取消</el-button>
-                <el-button type="primary" @click.native="setSubmit" :loading="addLoading">提交</el-button>
-            </div>
+                <el-button type="primary" @click.native="handleSubmit" :loading="addLoading">修改</el-button>
+                <!--<el-button type="danger" @click.native="handleSubmit" :loading="addLoading">删除</el-button>-->
+            </span>
         </el-dialog>
         <!--工具条-->
         <el-col :span="24" class="toolbar">
@@ -119,9 +108,9 @@
 
 <script>
     import util from 'common/js/util'
+    import Cookies from 'js-cookie'
     //import NProgress from 'nprogress'
-    import {roleList, createRole, deleteRole, reloadRole, permissions, setRolePermissions, setPermission} from 'api';
-
+    import {roleList, createRole, deleteRole, reloadRole, setPermission} from 'api';
     export default {
         data() {
             return {
@@ -146,7 +135,8 @@
                 setFormVisible:false,
                 setLoading:false,
                 setFormRules:{name: [{required: true, message: '请输入权限名', trigger: 'blur'}]},
-                setForm:{id:null,pid:[]}
+                setForm:{id:null,pid:[],allPermissions:[],permissions:[],hasPermission:[],noPermission:[]},
+                indexs:[]
             }
         },
         methods: {
@@ -173,14 +163,10 @@
             getList () {
                 this.listLoading = true;
                 roleList().then(res => {
+                    this.permissionList = res.data.permissions
                     this.total = res.data.paging.total_pages
                     this.roles = res.data.roles
                     this.listLoading = false
-                })
-            },
-            getPermission(){
-                permissions().then(res => {
-                    this.permissionList = res.data.permissions
                 })
             },
             //删除
@@ -263,23 +249,32 @@
                 this.setFormVisible = true
                 this.setForm.id = row.id
                 this.setForm.name = row.name
+                this.setForm.allPermissions = row.allpermissions
+                this.setForm.permissions = row.permissions
+                this.indexs = row.permissions.map(item =>{
+                    return item.id
+                })
             },
-            setSubmit:function () {
+            changeCheckbox(e){
+                this.indexs = e
+            },
+            handleSubmit(e) {
+                let that = this
                 this.$refs.setForm.validate((valid) => {
-                    let id = this.setForm.id
-                    this.setLoading = true
-//                    setRolePermissions(id,this.setForm.pid.join(",")).then(res => {
-                    setPermission(id,this.setForm.pid.join(",")).then(res => {
-                        this.setLoading = false;
+                    let id = that.setForm.id
+                    that.setLoading = true
+                    let pid = that.indexs.join(",")
+                    setPermission(id,pid).then(res => {
+                        that.setLoading = false;
                         if (res.code == 1) {
-                            this.$message({
-                                message: '添加成功',
+                            that.$message({
+                                message: '修改成功',
                                 type: 'success'
                             });
                             this.getList()
-                            this.setFormVisible = false
+                            that.setFormVisible = false
                         } else {
-                            this.$message({
+                            that.$message({
                                 message: '未知错误',
                                 type: 'error'
                             });
@@ -291,11 +286,10 @@
             handleClose(tag) {
                 console.log(this.dynamicTags)
                 this.dynamicTags.splice(this.dynamicTags.indexOf(tag), 1);
-            }
+            },
         },
         mounted() {
             this.getList()
-            this.getPermission()
         }
     }
 

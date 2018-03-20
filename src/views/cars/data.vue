@@ -18,7 +18,7 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="search">查询</el-button>
+                    <el-button type="primary" @click="_getList">查询</el-button>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="handleAdd">新增</el-button>
@@ -74,7 +74,7 @@
                     <el-input type="text" v-model="addForm.name"></el-input>
                 </el-form-item>
                 <el-form-item label="类型">
-                    <el-select v-model="addForm.dic_type" multiple clearable  filterable allow-create placeholder="请选择">
+                    <el-select v-model="addForm.dic_type" clearable  filterable allow-create placeholder="请选择">
                         <el-option
                                 v-for="item,index in types"
                                 :key="index"
@@ -117,17 +117,23 @@
                 },
                 total: 0,
                 page: 1,
+                ite:'',
                 types:[],
                 dictionaries: [],
                 lis:[],
                 listLoading: false,
                 sels: [],//列表选中列
                 list:null,
+                map:new Map(),
+                params:{
+                    page:1
+                },
+
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
                 editFormRules: {
                     name: [
-                        {required: true, message: '品牌名称', trigger: 'blur'}
+                        {required: true, message: '数据类型', trigger: 'blur'}
                     ],
                     dic_type:[
                         {required: true, message: 'type类型', trigger: 'blur'}
@@ -144,7 +150,9 @@
                 addFormVisible: false,//新增界面是否显示
                 addLoading: false,
                 addFormRules: {
-                    name: [{required: true, message: '请输入姓名', trigger: 'blur'}]
+                    name: [
+                        {required: true, message: '数据类型', trigger: 'blur'}
+                    ]
                 },
                 //新增界面数据
                 addForm: {
@@ -157,49 +165,38 @@
         },
         methods: {
             handleCurrentChange(val) {
-                this.page = val;
-                this.getPerList();
+                this.params.page = val;
+                this._getList(this.params.page);
             },
             //数据字典列表
             getPerList() {
                 dictionariesType().then(res =>{
                     this.types= res.data.dictionary.type
-                    this.types.map((item,index) => {
-                        let name = ''
-                        this.listLoading = true;
-                        this.getdicList(item,name)
-                    })
                 })
             },
-            getdicList(item,name){
-                dictionariesList(item,name).then(res => {
+            getdicList(params){
+                this.listLoading = true;
+                dictionariesList(params).then(res => {
                     this.dictionaries = res.data.dictionaries
+                    // this.lis.splice(0,this.lis.length); //清空数组
                     this.listLoading = false
                     this.total = res.data.paging.total_pages
                 })
             },
-            search () {
+
+            //获取用户列表
+            _getList() {
                 let that = this
-                if(this.filters.name == "" && this.filters.type == ""){
-                    this.getPerList();
-                }else if(this.filters.name != ""){
-                    if(this.filters.type == ""){
-                        that.$message({
-                            message: '类型名不能为空',
-                            type: 'success'
-                        });
-                    }
-                    var type = this.filters.type
-                    var name = this.filters.name
-                    this.listLoading = true;
-                    that.getdicList(type,name)
-                }else if(this.filters.type != ""){
-                    var type = this.filters.type
-                    var name = this.filters.name
-                    this.listLoading = true;
-                    that.getdicList(type,name)
+                for(const i in that.filters){
+                    that.map.set(i, that.filters[i])
+                    that.map.forEach((val, key, obj) => {
+                        that.params[key] = val
+                    })
                 }
+                this.getdicList(this.params),
+                this.getPerList()
             },
+
             handleEdit:function (index, row) {
                 this.editFormVisible = true
                 this.editForm = Object.assign({}, row);
@@ -216,7 +213,7 @@
                                 message: '更新成功',
                                 type: 'success'
                             });
-                            this.getPerList()
+                            this._getList()
                             this.editFormVisible = false
                         } else {
                             this.$message({
@@ -241,7 +238,7 @@
                             message: res.msg,
                             type: 'success'
                         });
-                        this.getPerList();
+                        this._getList();
                     });
                 }).catch(() => {
 
@@ -266,43 +263,51 @@
                             message: '删除成功',
                             type: 'success'
                         });
-                        this.getPerList();
+                        this._getList();
                     });
                 }).catch(() => {
 
                 });
             },
             handleAdd () {
-                this.addFormVisible = true
+                this.addFormVisible = true;
+                this.addForm = Object.assign({}, row);
             },
             //增加数据字典
             addSubmit () {
-                this.$refs.addForm.validate((valid) => {
-                    if (valid) {
-                        this.addLoading = true
-                        addDictionaries(this.addForm.name,this.addForm.description,this.addForm.dic_type).then(res => {
-                            this.addLoading = false;
-                            if (res.code == 1) {
-                                this.$message({
-                                    message: '添加成功',
-                                    type: 'success'
-                                });
-                                this.$refs['addForm'].resetFields()
-                                this.getPerList()
-                                this.addFormVisible = false
-                            } else {
-                                this.$message({
-                                    message: '请填写全部信息',
-                                    type: 'error'
-                                });
-                            }
-                        })
-                    }
-                })
+                if(this.addForm.name == null || this.addForm.name == ''){
+                    this.$message({
+                        message: '请填写数据名称',
+                        type: 'warning'
+                    });
+                }else {
+                    this.$refs.addForm.validate((valid) => {
+                        if (valid) {
+                            this.addLoading = true
+                            addDictionaries(this.addForm.name, this.addForm.description, this.addForm.dic_type).then(res => {
+                                this.addLoading = false;
+                                if (res.code == 1) {
+                                    this.$message({
+                                        message: '添加成功',
+                                        type: 'success'
+                                    });
+                                    this.$refs['addForm'].resetFields()
+                                    this._getList()
+                                    this.addFormVisible = false
+                                } else {
+                                    this.$message({
+                                        message: '请填写全部信息',
+                                        type: 'error'
+                                    });
+                                }
+                            })
+                        }
+                    })
+                }
             }
         },
         mounted() {
-            this.getPerList();
+            this._getList();
         }
     }
 

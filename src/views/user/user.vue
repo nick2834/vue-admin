@@ -4,7 +4,7 @@
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
             <el-form :inline="true" :model="filters">
                 <el-form-item>
-                    <el-input v-model="filters.id" placeholder="用户ID" @focus="getFilters"></el-input>
+                    <el-input v-model="filters.user_id" placeholder="用户ID" @focus="getFilters"></el-input>
                 </el-form-item>
                 <el-form-item>
                     <el-input v-model="filters.phone" placeholder="手机号" @focus="getFilters"></el-input>
@@ -32,7 +32,7 @@
                   height="450">
             <el-table-column type="selection" width="55">
             </el-table-column>
-            <el-table-column label="操作" width="260" fixed="right">
+            <el-table-column label="操作" width="260" fixed="left">
                 <template slot-scope="scope">
                     <el-button size="small" @click="handleEdit(scope.$index, scope.row)">查看</el-button>
                     <el-button v-if="!scope.row.internal_user"  size="small"
@@ -55,8 +55,8 @@
             <el-table-column prop="last_login_time" label="最后登录时间" width="200" :formatter="dateFormat" sortable>
             </el-table-column>
             <el-table-column prop="phone" label="手机号" width="200" sortable></el-table-column>
-            <el-table-column prop="invite" label="邀请码" width="100" sortable></el-table-column>
-            <el-table-column prop="internal_user" label="内部用户" width="120" :formatter="internal" sortable></el-table-column>
+            <!--<el-table-column prop="invite" label="邀请码" width="100" sortable></el-table-column>-->
+            <el-table-column prop="internal_user" label="内部用户" :formatter="internal" sortable></el-table-column>
         </el-table>
 
         <!--工具条-->
@@ -81,7 +81,7 @@
                 filename: '',
                 downloadLoading: false,
                 filters: {
-                    id: '',
+                    user_id: '',
                     phone: '',
                     name: ''
                 },
@@ -165,7 +165,14 @@
             },
             //内部用户设置
             handleInternal(index, row){
-                this.$confirm('是否将该用户设为内部用户?', '提示', {
+                var connet = ''
+                if(!row.internal_user){
+                    connet = '设置内部'
+                }
+                if(row.internal_user ){
+                    connet = '取消内部'
+                }
+                this.$confirm('是否将该用户'+connet+'用户?', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning',
@@ -209,6 +216,7 @@
                                 type: 'success',
                                 message: '注销成功!'
                             });
+                            this.getUsers()
                         }else{
                             this.$message({
                                 message: '未知错误',
